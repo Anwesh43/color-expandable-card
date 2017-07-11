@@ -6,13 +6,21 @@ class ColorExpandableDivComponent extends HTMLElement {
         const shadow = this.attachShadow({mode:'open'})
         this.div = document.createElement('canvas')
         shadow.appendChild(this.div)
+        this.colorExpandableDiv = new ColorExpandableDiv()
     }
     render() {
         const canvas = document.createElement('canvas')
         canvas.width = w/4
         canvas.height = h/4
         const context = canvas.getContext('2d')
+        this.colorExpandableDiv.draw(context,this.color,w/4,h/4)
         this.div.background = `url(${canvas.toDataURL()})`
+    }
+    update() {
+        this.colorExpandableDiv.update()
+    }
+    stopped() {
+        return this.colorExpandableDiv.stopped()
     }
     connectedCallback() {
         this.render()
@@ -79,5 +87,24 @@ class ColorExpandableDiv {
     }
     stopped() {
         return this.dir == 0
+    }
+}
+class AnimationHandler {
+    constructor(component) {
+        this.component = component
+        this.animated = false
+    }
+    startAnimation() {
+        if(this.animated == false) {
+            this.animated = true
+            const interval = setInterval(()=>{
+                this.component.render()
+                this.component.update()
+                if(this.component.stopped() == true) {
+                    clearInterval(interval)
+                    this.animated = false
+                }
+            },75)
+        }
     }
 }
